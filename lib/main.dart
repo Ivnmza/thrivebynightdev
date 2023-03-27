@@ -1,8 +1,8 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:video_player/video_player.dart';
 import 'firebase_options.dart';
+import 'service/storage_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,56 +23,112 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  MyHomePage({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   final storage = StorageService();
+
+  late var vidList = [];
+
+  late var cloudVideoList = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    
+    getVidURLs();
+    getCloudVidURLs();
+    print(cloudVideoList);
+    super.initState();
+  }
+
+  void getVidURLs() async {
+    vidList = await storage.getAllVideos();
+  }
+
+  void getCloudVidURLs() async {
+    cloudVideoList = await storage.getCloudVideos();
+    setState(){}
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Thrivebynightdev")),
-      body: ListView(
-        children: [
-          Center(
-            child: Container(
-              height: 200,
-              child: Column(children: [
-                Text("Thumbnail"),
-                Spacer(),
-                Row(
-                  children: [Text("Title")],
-                )
-              ]),
-            ),
-          ),
-          Center(
-            child: FilledButton(
-                child: Text("print storage items"),
-                onPressed: (() {
-                  storage.printListItems();
-                })),
-          ),
-          TestVideoPlayerItem()
-        ],
-      ),
-    );
+        appBar: AppBar(title: const Text("Thrivebynightdev")),
+        body: ListView.builder(
+            itemCount: cloudVideoList.length,
+            itemBuilder: (context, index) {
+              return VideoItem(
+                  url: cloudVideoList[index].url,
+                  title: cloudVideoList[index].name);
+            }));
   }
 }
 
-// 3/22/23
-//23:12 - lets try just listAll()
-//2:14 - actually lets just implement the video player first
-//3/23/23
-//08:00 - video is hardcoded but streaming/playing from storage bucket
-// next is iterate all videos to list 
+class VideoItem extends StatefulWidget {
+  const VideoItem({super.key, required this.url, required this.title});
+  final String url;
+  final String title;
 
-// 3/23/23
-// 10:31pm
+  @override
+  State<VideoItem> createState() => _VideoItemState();
+}
+
+class _VideoItemState extends State<VideoItem> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.url);
+    _controller.addListener(() {
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Container(padding: const EdgeInsets.only(top: 20.0)),
+        Text(widget.title),
+        Container(
+          padding: const EdgeInsets.all(20),
+          child: AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[
+                VideoPlayer(_controller),
+                ClosedCaption(text: _controller.value.caption.text),
+                _ControlsOverlay(controller: _controller),
+                VideoProgressIndicator(_controller, allowScrubbing: true),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class TestVideoPlayerItem extends StatefulWidget {
   const TestVideoPlayerItem({super.key});
@@ -105,26 +161,26 @@ class _TestVideoPlayerItemState extends State<TestVideoPlayerItem> {
   @override
   Widget build(BuildContext context) {
     return Column(
-        children: <Widget>[
-          Container(padding: const EdgeInsets.only(top: 20.0)),
-          const Text('With remote mp4'),
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: <Widget>[
-                  VideoPlayer(_controller),
-                  ClosedCaption(text: _controller.value.caption.text),
-                  _ControlsOverlay(controller: _controller),
-                  VideoProgressIndicator(_controller, allowScrubbing: true),
-                ],
-              ),
+      children: <Widget>[
+        Container(padding: const EdgeInsets.only(top: 20.0)),
+        const Text('With remote mp4'),
+        Container(
+          padding: const EdgeInsets.all(20),
+          child: AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[
+                VideoPlayer(_controller),
+                ClosedCaption(text: _controller.value.caption.text),
+                _ControlsOverlay(controller: _controller),
+                VideoProgressIndicator(_controller, allowScrubbing: true),
+              ],
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 }
 
@@ -245,44 +301,23 @@ class _ControlsOverlay extends StatelessWidget {
 }
 
 
-class StorageService {
-  final storage = FirebaseStorage.instance;
-  final storageRef = FirebaseStorage.instance.ref();
-  StorageService();
+// 3/22/23
+//23:12 - lets try just listAll()
+//2:14 - actually lets just implement the video player first
+//3/23/23
+//08:00 - video is hardcoded but streaming/playing from storage bucket
+// next is iterate all videos to list
 
-  printListItems() async {
-    print("list item button pressed");
-    final listResult = await storageRef.listAll();
-    for (var prefix in listResult.prefixes) {
-      print("Prefix: " + "$prefix");
-    }
-    for (var item in listResult.items) {
-      print(item);
-    }
-  }
-/*
-    Future<List<Module>> getAllModules() async {
-    final isar = await db;
-    return await isar.modules.where().findAll();
-  }
+// 3/23/23
+// 10:31pm
+// 3/24/23
+// 7:26pm - first lets  refactor TestVideoPlayerItem to accept  the video url as a parameter
+// 7:56 - What is  a logging Framework?
+// 12:28am - create storage service method that returns a list in order to use a listview builder
+// 2:08am - convert home page to stateful so storage service can call to get list of videos url
+// 03:08am - create new storage service to map to new video data video model
 
-//esasy
-  Stream<List<Module>> listenToModules() async* {
-    final isar = await db;
-    yield* isar.modules.where().watch(fireImmediately: true);
-  }
-  */
-}
-
-
-
-
-
-
-
-
-
-// Now  that firebase has been setup
-// figure out how to stream or  get videos from cloud storage
-// from what i read, the best ways is to store the the storage link in firestore
-// first 
+// 03/26/23
+//1:30am - Last issue i . was having was the list isnt being loaded initally, only after a hot restart does it  show up
+// 1:44 - maybe using futurebuilder
+// 7:13 pm - lets try a 1. futurebuilder or 2. the " isLoading method"
