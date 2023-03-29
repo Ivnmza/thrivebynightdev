@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
 import 'firebase_options.dart';
 import 'service/storage_service.dart';
+
+var logger = Logger();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +17,6 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -47,7 +49,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     //getVidURLs();
     // getCloudVidURLs();
-    print('cloudvideolist $cloudVideoList');
+    var logger = Logger();
+    logger.d('cloudvideolist $cloudVideoList');
   }
 
   void getVidURLs() async {
@@ -58,10 +61,10 @@ class _MyHomePageState extends State<MyHomePage> {
     cloudVideoList = await storage.getCloudVideos();
   }
 
-  Future<List<CloudVideo>> getCloudTest() async {
-    List<CloudVideo> _a = await storage.getCloudVideos();
-    print('get cloud test: ${_a}');
-    return _a;
+  Future<List<CloudVideo>> _cloudVideos() async {
+    List<CloudVideo> cloudVideoList = await storage.getCloudVideos();
+    logger.d('get cloud test: $cloudVideoList');
+    return cloudVideoList;
   }
 
   @override
@@ -69,11 +72,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(title: const Text("Thrivebynightdev")),
         body: FutureBuilder(
-          future: getCloudTest(),
+          future: _cloudVideos(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               } else {
@@ -87,9 +90,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }
             } else if (snapshot.hasError) {
-              return Text('no data');
+              return const Text('no data');
             }
-            return CircularProgressIndicator();
+            return const CircularProgressIndicator();
           },
         ));
   }

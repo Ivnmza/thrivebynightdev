@@ -1,4 +1,5 @@
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:thrivebynightdev/main.dart';
 
 class StorageService {
   final storage = FirebaseStorage.instance;
@@ -10,12 +11,12 @@ class StorageService {
     try {
       listResult = await storageRef.listAll();
     } on FirebaseException catch (e) {
-       print("Failed with error '${e.code}': ${e.message}");
+      logger.d('Failed with error ${e.code}: ${e.message}');
     }
     List<CloudVideo> cloudVideoList = [];
     for (var item in listResult.items) {
       String videoUrl;
-         print('File: storage_service: - getCloudVideos: ${item.bucket} ${item.fullPath}');
+        logger.d('File: storage_service: - getCloudVideos: ${item.bucket} ${item.fullPath}');
       videoUrl = await item.getDownloadURL();
       cloudVideoList.add(CloudVideo(name: item.name, url: videoUrl));
     }
@@ -26,7 +27,7 @@ class StorageService {
     final listResult = await storageRef.listAll();
     for (var item in listResult.items) {
       String videoUrl;
-      print('getAllVideos: ${item.bucket} ${item.fullPath}');
+      logger.d('getAllVideos: ${item.bucket} ${item.fullPath}');
       videoUrl = await item.getDownloadURL();
       videoList.add(videoUrl);
     }
@@ -34,13 +35,12 @@ class StorageService {
   }
 
   printListItems() async {
-    print("list item button pressed");
+    logger.d('list item button pressed');
     final listResult = await storageRef.listAll();
     for (var prefix in listResult.prefixes) {
-      print('Prefix: " {$prefix}');
-    }
+      logger.d('Prefix: $prefix');    }
     for (var item in listResult.items) {
-      print('${item.bucket} ${item.fullPath}');
+      logger.d('${item.bucket} ${item.fullPath}');
     }
   }
 /*
