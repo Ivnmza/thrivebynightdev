@@ -39,9 +39,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final storage = StorageService();
-
   late var vidList = [];
-
   late var cloudVideoList = [];
 
   @override
@@ -52,11 +50,12 @@ class _MyHomePageState extends State<MyHomePage> {
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
   }
-
+  // approach #1
   void getVidURLs() async {
     vidList = await storage.getAllVideos();
   }
 
+  // approach #2
   void getCloudVidURLs() async {
     cloudVideoList = await storage.getCloudVideos();
   }
