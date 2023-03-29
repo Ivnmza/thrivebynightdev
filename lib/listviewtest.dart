@@ -25,3 +25,69 @@ ListView(
       ),
 
       */
+
+
+
+
+
+
+
+
+/*
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  final storage = StorageService();
+
+  late var vidList = [];
+
+  late var cloudVideoList = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getVidURLs();
+    getCloudVidURLs();
+    print(cloudVideoList);
+   
+  }
+
+  void getVidURLs() async {
+    vidList = await storage.getAllVideos();
+  }
+
+  void getCloudVidURLs() async {
+    cloudVideoList = await storage.getCloudVideos();
+    setState(){}
+  }
+
+  Future<List<CloudVideo>> getCloudTest() async {
+    List<CloudVideo> _a = await storage.getCloudVideos();
+    return _a;
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: const Text("Thrivebynightdev")),
+        body: ListView.builder(
+            itemCount: cloudVideoList.length,
+            itemBuilder: (context, index) {
+              return VideoItem(
+                  url: cloudVideoList[index].url,
+                  title: cloudVideoList[index].name);
+            }));
+  }
+}
+
+
+*/

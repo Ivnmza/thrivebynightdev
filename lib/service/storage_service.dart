@@ -4,13 +4,18 @@ class StorageService {
   final storage = FirebaseStorage.instance;
   final storageRef = FirebaseStorage.instance.ref();
   List<String> videoList = [];
-  List<CloudVideo> cloudVideoList = [];
 
   Future<List<CloudVideo>> getCloudVideos() async {
-    final listResult = await storageRef.listAll();
+    late ListResult listResult;
+    try {
+      listResult = await storageRef.listAll();
+    } on FirebaseException catch (e) {
+       print("Failed with error '${e.code}': ${e.message}");
+    }
+    List<CloudVideo> cloudVideoList = [];
     for (var item in listResult.items) {
       String videoUrl;
-         print('getCloudVideos: ${item.bucket} ${item.fullPath}');
+         print('File: storage_service: - getCloudVideos: ${item.bucket} ${item.fullPath}');
       videoUrl = await item.getDownloadURL();
       cloudVideoList.add(CloudVideo(name: item.name, url: videoUrl));
     }

@@ -44,12 +44,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    
-    getVidURLs();
-    getCloudVidURLs();
-    print(cloudVideoList);
     super.initState();
+    //getVidURLs();
+    // getCloudVidURLs();
+    print('cloudvideolist $cloudVideoList');
   }
 
   void getVidURLs() async {
@@ -58,20 +56,42 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void getCloudVidURLs() async {
     cloudVideoList = await storage.getCloudVideos();
-    setState(){}
+  }
+
+  Future<List<CloudVideo>> getCloudTest() async {
+    List<CloudVideo> _a = await storage.getCloudVideos();
+    print('get cloud test: ${_a}');
+    return _a;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: const Text("Thrivebynightdev")),
-        body: ListView.builder(
-            itemCount: cloudVideoList.length,
-            itemBuilder: (context, index) {
-              return VideoItem(
-                  url: cloudVideoList[index].url,
-                  title: cloudVideoList[index].name);
-            }));
+        body: FutureBuilder(
+          future: getCloudTest(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return ListView.builder(
+                  itemCount: snapshot.data?.length,
+                  itemBuilder: (context, index) {
+                    return VideoItem(
+                        url: snapshot.data![index].url,
+                        title: snapshot.data![index].name);
+                  },
+                );
+              }
+            } else if (snapshot.hasError) {
+              return Text('no data');
+            }
+            return CircularProgressIndicator();
+          },
+        ));
   }
 }
 
@@ -144,7 +164,8 @@ class _TestVideoPlayerItemState extends State<TestVideoPlayerItem> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-        'https://firebasestorage.googleapis.com/v0/b/thrivebynightdev-866d3.appspot.com/o/2023-03-22-21-11-18.mov?alt=media&token=42fcf4de-ccdf-4d32-89df-137789fd0428');
+        'https://firebasestorage.googleapis.com/v0/b/thrivebynightdev-866d3.appspot.com/o/2023-03-22-21-11-18.mov?alt=media&token=42fcf4de-ccdf-4d32-89df-137789fd0428',
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),);
     _controller.addListener(() {
       setState(() {});
     });
@@ -321,3 +342,23 @@ class _ControlsOverlay extends StatelessWidget {
 //1:30am - Last issue i . was having was the list isnt being loaded initally, only after a hot restart does it  show up
 // 1:44 - maybe using futurebuilder
 // 7:13 pm - lets try a 1. futurebuilder or 2. the " isLoading method"
+// 03.27
+// 11:00 pm - loaded to mh phone. works as intended.
+// 03:28
+// ok awesome.   the thumbnails work, as i was getting  the  weird  "composite textures "  error previously.
+// 03:38 - fix the  multiple videos playing  thing
+// 4:00 - dont think it makes much a difference for right now.
+// 4:03 - Want to  implement UI presentation widger for video. I could just use the info directly drom cloud storage query
+
+//8:40pm
+// updating firebase plugins
+// looked into what firebase ios sdk version means https://firebase.google.com/support/release-notes/ios#10.5.0  https://github.com/firebase/firebase-ios-sdk/releases
+
+// 9:45 pm
+//updated firestore pubspec 4.4.5 from 4.4.4.
+// updated firebase core to 2.8.0
+// updated firebase storage 11.0.15 -> .16
+
+// 11:02,
+// it  all seems to have worked. ultimately using repo update Firebase/firestore downloaded the 10.6 ios sdk.
+// there was some trouble for the xcode taking a couple of  restarts t o get  it right tho.
