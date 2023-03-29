@@ -16,14 +16,14 @@ class StorageService {
     List<CloudVideo> cloudVideoList = [];
     for (var item in listResult.items) {
       String videoUrl;
-        logger.d('File: storage_service: - getCloudVideos: ${item.bucket} ${item.fullPath}');
+        logger.d('file: ${item.bucket} ${item.fullPath}');
       videoUrl = await item.getDownloadURL();
       cloudVideoList.add(CloudVideo(name: item.name, url: videoUrl));
     }
     return cloudVideoList;
   }
 
-  Future<List<String>> getAllVideos() async {
+  Future<List<String>> getAllVideoURLs() async {
     final listResult = await storageRef.listAll();
     for (var item in listResult.items) {
       String videoUrl;

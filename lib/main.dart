@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   // approach #1
   void getVidURLs() async {
-    vidList = await storage.getAllVideos();
+    vidList = await storage.getAllVideoURLs();
   }
 
   // approach #2
@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<List<CloudVideo>> _cloudVideos() async {
     List<CloudVideo> cloudVideoList = await storage.getCloudVideos();
-    logger.d('get cloud test: $cloudVideoList');
+    logger.d('_cloudVideos: $cloudVideoList');
     return cloudVideoList;
   }
 

@@ -1,5 +1,8 @@
 /*
-approach #1
+===========
+HARDCODED
+===========
+
 ListView(
         children: [
           Center(
@@ -35,7 +38,12 @@ ListView(
 
 
 /*
-approach #2
+========================================
+ POPULATE CLOUDVIDEOLIST INSIDE INIITSTATE
+ DID NOT SEEM TO PRELOAD THE LIST
+ ONLY LOADED AFTER A HOT RESTART
+ =======================================
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -67,11 +75,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void getCloudVidURLs() async {
     cloudVideoList = await storage.getCloudVideos();
     setState(){}
-  }
-
-  Future<List<CloudVideo>> getCloudTest() async {
-    List<CloudVideo> _a = await storage.getCloudVideos();
-    return _a;
   }
 
   @override
