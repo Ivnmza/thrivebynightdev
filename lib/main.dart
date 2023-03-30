@@ -22,6 +22,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Thrivebynightdev',
       theme: ThemeData(
+        appBarTheme: const AppBarTheme(color: Color.fromARGB(255, 49, 36, 236)),
+        canvasColor: const Color.fromARGB(255, 28, 28, 28),
         brightness: Brightness.dark,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -50,6 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
   }
+
   // approach #1
   void getVidURLs() async {
     vidList = await storage.getAllVideoURLs();
@@ -82,14 +85,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 return ListView.builder(
                   itemCount: snapshot.data?.length,
                   itemBuilder: (context, index) {
-                    return VideoItem(
-                        url: snapshot.data![index].url,
-                        title: snapshot.data![index].name);
+                    return Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.all(8),
+                      color: const Color.fromARGB(255, 12, 12, 12),
+                      child: VideoItem(
+                          url: snapshot.data![index].url,
+                          title: snapshot.data![index].name),
+                    );
                   },
                 );
               }
             } else if (snapshot.hasError) {
-              return const Text('no data');
+              return const Center(child: Text('no data'));
             }
             return const CircularProgressIndicator();
           },
@@ -130,10 +138,8 @@ class _VideoItemState extends State<VideoItem> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Container(padding: const EdgeInsets.only(top: 20.0)),
-        Text(widget.title),
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.only(top: 10, bottom: 10),
           child: AspectRatio(
             aspectRatio: _controller.value.aspectRatio,
             child: Stack(
@@ -147,11 +153,14 @@ class _VideoItemState extends State<VideoItem> {
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4.0),
+          child: Text(widget.title),
+        ),
       ],
     );
   }
 }
-
 
 class _ControlsOverlay extends StatelessWidget {
   const _ControlsOverlay({required this.controller});
