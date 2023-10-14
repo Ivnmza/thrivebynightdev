@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:thrivebynightdev/main.dart';
 
 class StorageService {
   final storage = FirebaseStorage.instance;
   final storageRef = FirebaseStorage.instance.ref();
+
+  final db = FirebaseFirestore.instance;
+  
   List<String> videoList = [];
 
   Future<List<CloudVideo>> getCloudVideos() async {

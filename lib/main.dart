@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
 import 'firebase_options.dart';
 import 'service/storage_service.dart';
+import 'package:chewie/chewie.dart';
 
 var logger = Logger();
 
@@ -47,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    //getVidURLs();
+    getVidURLs();
     // getCloudVidURLs();
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
@@ -55,17 +56,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // approach #1
   void getVidURLs() async {
+    logger.d("here");
     vidList = await storage.getAllVideoURLs();
+    logger.d(vidList);
   }
 
   // approach #2
   void getCloudVidURLs() async {
     cloudVideoList = await storage.getCloudVideos();
   }
-
+// approach #3
   Future<List<CloudVideo>> _cloudVideos() async {
     List<CloudVideo> cloudVideoList = await storage.getCloudVideos();
-    logger.d('_cloudVideos: $cloudVideoList');
     return cloudVideoList;
   }
 
@@ -105,6 +107,79 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class ChewieItem extends StatefulWidget {
+  const ChewieItem({super.key, required this.url, required this.title});
+  final String url;
+  final String title;
+
+  @override
+  State<ChewieItem> createState() => _ChewieItemState();
+}
+
+class _ChewieItemState extends State<ChewieItem> {
+  late VideoPlayerController _ccontroller;
+  late ChewieController _chewieController;
+  int? bufferDelay;
+
+  @override
+  void initState() {
+    super.initState();
+    initializePlayer();
+    _chewieController = ChewieController(
+      videoPlayerController: _ccontroller,
+      autoPlay: true,
+      looping: true,
+      progressIndicatorDelay:
+          bufferDelay != null ? Duration(milliseconds: bufferDelay!) : null,
+      subtitleBuilder: (context, dynamic subtitle) => Container(
+        padding: const EdgeInsets.all(10.0),
+        child: subtitle is InlineSpan
+            ? RichText(
+                text: subtitle,
+              )
+            : Text(
+                subtitle.toString(),
+                style: const TextStyle(color: Colors.black),
+              ),
+      ),
+      hideControlsTimer: const Duration(seconds: 1),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ccontroller.dispose();
+    _chewieController.dispose();
+    super.dispose();
+  }
+
+  Future<void> initializePlayer() async {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: _chewieController.videoPlayerController.value.isInitialized
+              ? Chewie(
+                  controller: _chewieController,
+                )
+              : const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text('Loading'),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
 class VideoItem extends StatefulWidget {
   const VideoItem({super.key, required this.url, required this.title});
   final String url;
@@ -120,12 +195,13 @@ class _VideoItemState extends State<VideoItem> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.url);
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _controller.setLooping(true);
+    _controller.initialize();
+    logger.d(Uri.parse(widget.url));
     _controller.addListener(() {
       setState(() {});
     });
-    _controller.setLooping(true);
-    _controller.initialize();
   }
 
   @override
@@ -146,16 +222,19 @@ class _VideoItemState extends State<VideoItem> {
               alignment: Alignment.bottomCenter,
               children: <Widget>[
                 VideoPlayer(_controller),
-                ClosedCaption(text: _controller.value.caption.text),
+                //ClosedCaption(text: _controller.value.caption.text),
                 _ControlsOverlay(controller: _controller),
                 VideoProgressIndicator(_controller, allowScrubbing: true),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(widget.title),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4.0),
-          child: Text(widget.title),
         ),
       ],
     );
@@ -215,35 +294,7 @@ class _ControlsOverlay extends StatelessWidget {
             controller.value.isPlaying ? controller.pause() : controller.play();
           },
         ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: PopupMenuButton<Duration>(
-            initialValue: controller.value.captionOffset,
-            tooltip: 'Caption Offset',
-            onSelected: (Duration delay) {
-              controller.setCaptionOffset(delay);
-            },
-            itemBuilder: (BuildContext context) {
-              return <PopupMenuItem<Duration>>[
-                for (final Duration offsetDuration in _exampleCaptionOffsets)
-                  PopupMenuItem<Duration>(
-                    value: offsetDuration,
-                    child: Text('${offsetDuration.inMilliseconds}ms'),
-                  )
-              ];
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                // Using less vertical padding as the text is also longer
-                // horizontally, so it feels like it would need more spacing
-                // horizontally (matching the aspect ratio of the video).
-                vertical: 12,
-                horizontal: 16,
-              ),
-              child: Text('${controller.value.captionOffset.inMilliseconds}ms'),
-            ),
-          ),
-        ),
+
         Align(
           alignment: Alignment.topRight,
           child: PopupMenuButton<double>(
