@@ -7,28 +7,11 @@ class StorageService {
   final storageRef = FirebaseStorage.instance.ref();
 
   final db = FirebaseFirestore.instance;
-  
-  List<String> videoList = [];
-
-  Future<List<CloudVideo>> getCloudVideos() async {
-    late ListResult listResult;
-    try {
-      listResult = await storageRef.listAll();
-    } on FirebaseException catch (e) {
-      logger.d('Failed with error ${e.code}: ${e.message}');
-    }
-    List<CloudVideo> cloudVideoList = [];
-    for (var item in listResult.items) {
-      String videoUrl;
-        logger.d('file: ${item.bucket} ${item.fullPath}');
-      videoUrl = await item.getDownloadURL();
-      cloudVideoList.add(CloudVideo(name: item.name, url: videoUrl));
-    }
-    return cloudVideoList;
-  }
 
   Future<List<String>> getAllVideoURLs() async {
     final listResult = await storageRef.listAll();
+    List<String> videoList = [];
+
     for (var item in listResult.items) {
       String videoUrl;
       logger.d('getAllVideos: ${item.bucket} ${item.fullPath}');
@@ -38,11 +21,30 @@ class StorageService {
     return videoList;
   }
 
+  Future<List<CloudVideo>> getCloudVideos() async {
+    late ListResult listResult;
+    List<CloudVideo> cloudVideoList = [];
+
+    try {
+      listResult = await storageRef.listAll();
+    } on FirebaseException catch (e) {
+      logger.d('Failed with error ${e.code}: ${e.message}');
+    }
+    for (var item in listResult.items) {
+      String videoUrl;
+      logger.d('file: ${item.bucket} ${item.fullPath}');
+      videoUrl = await item.getDownloadURL();
+      cloudVideoList.add(CloudVideo(name: item.name, url: videoUrl));
+    }
+    return cloudVideoList;
+  }
+
   printListItems() async {
     logger.d('list item button pressed');
     final listResult = await storageRef.listAll();
     for (var prefix in listResult.prefixes) {
-      logger.d('Prefix: $prefix');    }
+      logger.d('Prefix: $prefix');
+    }
     for (var item in listResult.items) {
       logger.d('${item.bucket} ${item.fullPath}');
     }
