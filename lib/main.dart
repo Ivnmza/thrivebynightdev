@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
 import 'firebase_options.dart';
-import 'service/storage_service.dart';
+import 'service/firebase_service.dart';
 
 var logger = Logger();
 
@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final storage = StorageService();
+  final storage = FirebaseService();
   late var vidList = [];
   late var cloudVideoList = [];
 
