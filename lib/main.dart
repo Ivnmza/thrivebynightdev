@@ -181,6 +181,25 @@ class _ChewieItemState extends State<ChewieItem> {
   }
 }
 
+class BlogPostItem extends StatefulWidget {
+  final String title;
+  final String url;
+  final String date;
+  final String description;
+  final String content;
+  const BlogPostItem({super.key, required this.title, required this.url, required this.date, required this.description, required this.content,});
+
+  @override
+  State<BlogPostItem> createState() => _BlogPostItemState();
+}
+
+class _BlogPostItemState extends State<BlogPostItem> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
 class VideoItem extends StatefulWidget {
   const VideoItem({super.key, required this.url, required this.title});
   final String url;
