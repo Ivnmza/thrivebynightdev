@@ -49,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     getVidURLs();
+    storage.testAddData();
     // getCloudVidURLs();
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
