@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final storage = FirebaseService();
+  final firebase = FirebaseService();
   late var vidList = [];
   late var cloudVideoList = [];
 
@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     getVidURLs();
-    storage.testAddData();
+    firebase.testAddData();
     // getCloudVidURLs();
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // approach #1
   void getVidURLs() async {
     logger.d("here");
-    vidList = await storage.getAllVideoURLs();
+    vidList = await firebase.getAllVideoURLs();
     logger.d(vidList);
   }
 
@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(title: const Text("Thrivebynightdev")),
         body: FutureBuilder(
-          future: storage.getCloudVideos(),
+          future: firebase.getCloudVideos(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               if (snapshot.connectionState == ConnectionState.waiting) {
