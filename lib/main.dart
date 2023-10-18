@@ -116,14 +116,14 @@ FutureBuilder(
 
 class BlogPostItem extends StatefulWidget {
   final String title;
-  final String url;
+  final String thumbnailUrl;
   final String date;
   final String description;
   final String content;
   const BlogPostItem({
     super.key,
     required this.title,
-    required this.url,
+    required this.thumbnailUrl,
     required this.date,
     required this.description,
     required this.content,
