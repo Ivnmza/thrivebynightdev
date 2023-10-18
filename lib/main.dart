@@ -1,10 +1,10 @@
+import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
 import 'firebase_options.dart';
-import 'service/storage_service.dart';
-import 'package:chewie/chewie.dart';
+import 'service/firebase_service.dart';
 
 var logger = Logger();
 
@@ -41,7 +41,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final storage = StorageService();
+  final firebase = FirebaseService();
   late var vidList = [];
   late var cloudVideoList = [];
 
@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     getVidURLs();
-    storage.testAddData();
+    firebase.testAddData();
     // getCloudVidURLs();
     var logger = Logger();
     logger.d('cloudvideolist $cloudVideoList');
@@ -58,126 +58,85 @@ class _MyHomePageState extends State<MyHomePage> {
   // approach #1
   void getVidURLs() async {
     logger.d("here");
-    vidList = await storage.getAllVideoURLs();
+    vidList = await firebase.getAllVideoURLs();
     logger.d(vidList);
-  }
-
-  // approach #2
-  void getCloudVidURLs() async {
-    cloudVideoList = await storage.getCloudVideos();
-  }
-// approach #3
-  Future<List<CloudVideo>> _cloudVideos() async {
-    List<CloudVideo> cloudVideoList = await storage.getCloudVideos();
-    return cloudVideoList;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: const Text("Thrivebynightdev")),
-        body: FutureBuilder(
-          future: _cloudVideos(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                return ListView.builder(
-                  itemCount: snapshot.data?.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.all(8),
-                      color: const Color.fromARGB(255, 12, 12, 12),
-                      child: VideoItem(
-                          url: snapshot.data![index].url,
-                          title: snapshot.data![index].name),
-                    );
-                  },
-                );
-              }
-            } else if (snapshot.hasError) {
-              return const Center(child: Text('no data'));
-            }
-            return const CircularProgressIndicator();
+        body: FirestoreListView<Map<String, dynamic>>(
+          query: firebase.blogPostQuery,
+          itemBuilder: (context, snapshot) {
+            Map<String, dynamic> blogPostItem = snapshot.data();
+
+            return Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(8),
+                color: const Color.fromARGB(255, 12, 12, 12),
+                child: VideoItem(
+                    title: '${blogPostItem['title']}',
+                    url: '${blogPostItem['url']}'));
           },
         ));
   }
 }
+/*
+FutureBuilder(
+        future: firebase.getCloudVideos(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data?.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(8),
+                    color: const Color.fromARGB(255, 12, 12, 12),
+                    child: VideoItem(
+                        url: snapshot.data![index].url,
+                        title: snapshot.data![index].name),
+                  );
+                },
+              );
+            }
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('no data'));
+          }
+          return const CircularProgressIndicator();
+        },
+      ),
+*/
 
-class ChewieItem extends StatefulWidget {
-  const ChewieItem({super.key, required this.url, required this.title});
-  final String url;
+class BlogPostItem extends StatefulWidget {
   final String title;
+  final String thumbnailUrl;
+  final String date;
+  final String description;
+  final String content;
+  const BlogPostItem({
+    super.key,
+    required this.title,
+    required this.thumbnailUrl,
+    required this.date,
+    required this.description,
+    required this.content,
+  });
 
   @override
-  State<ChewieItem> createState() => _ChewieItemState();
+  State<BlogPostItem> createState() => _BlogPostItemState();
 }
 
-class _ChewieItemState extends State<ChewieItem> {
-  late VideoPlayerController _ccontroller;
-  late ChewieController _chewieController;
-  int? bufferDelay;
-
-  @override
-  void initState() {
-    super.initState();
-    initializePlayer();
-    _chewieController = ChewieController(
-      videoPlayerController: _ccontroller,
-      autoPlay: true,
-      looping: true,
-      progressIndicatorDelay:
-          bufferDelay != null ? Duration(milliseconds: bufferDelay!) : null,
-      subtitleBuilder: (context, dynamic subtitle) => Container(
-        padding: const EdgeInsets.all(10.0),
-        child: subtitle is InlineSpan
-            ? RichText(
-                text: subtitle,
-              )
-            : Text(
-                subtitle.toString(),
-                style: const TextStyle(color: Colors.black),
-              ),
-      ),
-      hideControlsTimer: const Duration(seconds: 1),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ccontroller.dispose();
-    _chewieController.dispose();
-    super.dispose();
-  }
-
-  Future<void> initializePlayer() async {
-    setState(() {});
-  }
-
+class _BlogPostItemState extends State<BlogPostItem> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Center(
-          child: _chewieController.videoPlayerController.value.isInitialized
-              ? Chewie(
-                  controller: _chewieController,
-                )
-              : const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text('Loading'),
-                  ],
-                ),
-        ),
-      ],
-    );
+    return const Placeholder();
   }
 }
 
@@ -295,7 +254,6 @@ class _ControlsOverlay extends StatelessWidget {
             controller.value.isPlaying ? controller.pause() : controller.play();
           },
         ),
-
         Align(
           alignment: Alignment.topRight,
           child: PopupMenuButton<double>(
