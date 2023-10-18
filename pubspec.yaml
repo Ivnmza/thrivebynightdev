@@ -41,6 +41,8 @@ dependencies:
   video_player: ^2.6.0
   logger: ^2.0.0
   chewie: ^1.7.1
+  firebase_ui_firestore: ^1.5.12
+
 
 dev_dependencies:
   flutter_test:
