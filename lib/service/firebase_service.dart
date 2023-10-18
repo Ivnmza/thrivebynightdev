@@ -10,9 +10,9 @@ class FirebaseService {
 
   testAddData() {
     // Create a new user with a first and last name
-  
+
     final blogPost = <String, dynamic>{
-      "title": "Alan",
+      "title": "Post Title",
       "url":
           "https://firebasestorage.googleapis.com/v0/b/thrivebynightdev-866d3.appspot.com/o/2023-03-03%2018-45-38.mov?alt=media&token=5e81f613-de01-4cf0-b7f7-19ddf1f8bc20&_gl=1*3qmznn*_ga*MTU3MzgzNzIwNi4xNjk1MjcxNjcw*_ga_CW55HF8NVT*MTY5NzI2MzczNi4xNi4xLjE2OTcyNjUwMzMuNTkuMC4w",
       "date": "Turing",
@@ -25,8 +25,7 @@ class FirebaseService {
         print('DocumentSnapshot added with ID: ${doc.id}'));
   }
 
-
-
+  late final blogPostQuery = db.collection('blog').orderBy('title');
 
   Future<List<String>> getAllVideoURLs() async {
     final listResult = await storageRef.listAll();
@@ -89,7 +88,12 @@ class BlogPost {
   final DateTime date;
   final String description;
   final String content;
-  BlogPost({required this.title, required this.url, required this.date, required this.description, required this.content});
+  BlogPost(
+      {required this.title,
+      required this.url,
+      required this.date,
+      required this.description,
+      required this.content});
 }
 
 class CloudVideo {
