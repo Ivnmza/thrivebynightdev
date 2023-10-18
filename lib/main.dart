@@ -1,3 +1,4 @@
+import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
@@ -65,39 +66,53 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: const Text("Thrivebynightdev")),
-        body: FutureBuilder(
-          future: firebase.getCloudVideos(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                return ListView.builder(
-                  itemCount: snapshot.data?.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.all(8),
-                      color: const Color.fromARGB(255, 12, 12, 12),
-                      child: VideoItem(
-                          url: snapshot.data![index].url,
-                          title: snapshot.data![index].name),
-                    );
-                  },
-                );
-              }
-            } else if (snapshot.hasError) {
-              return const Center(child: Text('no data'));
-            }
-            return const CircularProgressIndicator();
+        body: FirestoreListView<Map<String, dynamic>>(
+          query: firebase.blogPostQuery,
+          itemBuilder: (context, snapshot) {
+            Map<String, dynamic> blogPostItem = snapshot.data();
+
+            return Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(8),
+                color: const Color.fromARGB(255, 12, 12, 12),
+                child: VideoItem(
+                    title: '${blogPostItem['title']}',
+                    url: '${blogPostItem['url']}'));
           },
         ));
   }
 }
-
-
+/*
+FutureBuilder(
+        future: firebase.getCloudVideos(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data?.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(8),
+                    color: const Color.fromARGB(255, 12, 12, 12),
+                    child: VideoItem(
+                        url: snapshot.data![index].url,
+                        title: snapshot.data![index].name),
+                  );
+                },
+              );
+            }
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('no data'));
+          }
+          return const CircularProgressIndicator();
+        },
+      ),
+*/
 
 class BlogPostItem extends StatefulWidget {
   final String title;
@@ -105,7 +120,14 @@ class BlogPostItem extends StatefulWidget {
   final String date;
   final String description;
   final String content;
-  const BlogPostItem({super.key, required this.title, required this.url, required this.date, required this.description, required this.content,});
+  const BlogPostItem({
+    super.key,
+    required this.title,
+    required this.url,
+    required this.date,
+    required this.description,
+    required this.content,
+  });
 
   @override
   State<BlogPostItem> createState() => _BlogPostItemState();
@@ -232,7 +254,6 @@ class _ControlsOverlay extends StatelessWidget {
             controller.value.isPlaying ? controller.pause() : controller.play();
           },
         ),
-
         Align(
           alignment: Alignment.topRight,
           child: PopupMenuButton<double>(
